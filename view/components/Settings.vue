@@ -113,19 +113,10 @@
 import { name, playSound } from '~/assets/js/sound'
 import { user, fetchUser } from '~/assets/js/userLogged'; // Adjust the path as needed
 
-const loadUser = async () => {
-  await fetchUser();
-  console.log('settings', user)
-};
-onMounted(() => {
-  loadUser(); // Load user data when the component mounts
-});
 
-
-
-
+const userr = fetchUser()
 const initial = computed(() => user.name.charAt(0).toUpperCase());
-
+console.log("eto po lahat ng userr.", userr)
 const profile = [
   {
     label: 'name',

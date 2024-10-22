@@ -5,12 +5,11 @@ import { useRoute } from 'vue-router';
 
 const loadUser = async () => {
   await fetchUser();
-  console.log('sidebar menu', user)
 };
 
-onMounted(() => {
-  loadUser(); // Load user data when the component mounts
-});
+// onMounted(() => {
+//   loadUser(); // Load user data when the component mounts
+// });
 
 const route = useRoute(); // Reactive route object
 

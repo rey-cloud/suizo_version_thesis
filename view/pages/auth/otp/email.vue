@@ -95,8 +95,7 @@
   
   const loadUser = async () => {
     await fetchUser();
-    state.email = user.email; 
-    console.log(user); 
+    state.email = user.email;
   
     sendOTP();
   };

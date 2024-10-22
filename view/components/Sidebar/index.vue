@@ -4,7 +4,6 @@ import { user, fetchUser } from '~/assets/js/userLogged'; // Adjust the path as 
 
 const loadUser = async () => {
   await fetchUser();
-  console.log('sidebar index', user)
 };
 onMounted(() => {
   loadUser(); // Load user data when the component mounts

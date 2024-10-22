@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 
 // Initialize the user object
 export const user = reactive({
+  
   first_name: '',
   last_name: '',
   middle_initial: '',
@@ -46,6 +47,7 @@ export async function fetchUser() {
       user.username = data.username || user.username;
       user.created_at = data.created_at || user.created_at;
       user.updated_at = data.updated_at || user.updated_at;
+      return user;
     } else {
       console.error('No data found in response:', response);
     }

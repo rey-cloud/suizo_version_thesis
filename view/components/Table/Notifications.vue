@@ -121,6 +121,9 @@
 <script setup lang="ts">
 import { ModalViewNotifications } from '#components';
 import { notifications, fetchNotifications } from '~/assets/js/notifications';
+import { user, fetchUser } from '~/assets/js/userLogged'; // Adjust the path as needed
+
+
 
 const { username } = useRoute().params
 
@@ -176,7 +179,13 @@ onMounted(() => {
   loadNotifications()
 });
 const loadNotifications = async () => {
-  await fetchNotifications(username);
+  const user = await fetchUser();
+  if (username) {
+    await fetchNotifications(username);
+  } else {
+    await fetchNotifications(user.username);
+  }
+  
   console.log('settings', notifications)
 };
 
