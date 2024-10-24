@@ -8,6 +8,7 @@ use App\Http\Requests\LoginRequest; // Ensure correct import
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\AuthenticatedUserResource;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\ValidationException as ValidationValidationException;
@@ -109,7 +110,9 @@ class AuthController extends Controller
     }
 
     public function getUser(Request $request) {
-        return $request->user();;
+        $user = $request->user();
+        $user->makeVisible('password'); // Temporarily unhide the password
+        return response()->json($user);
     }
 
     public function loginAdmin(LoginRequest $request) {
@@ -171,7 +174,7 @@ class AuthController extends Controller
 
 
     public function getAllUsers() {
-        $users = User::all(); // Fetch all users
+        $users = User::where('id', '!=', Auth::id())->get(); // Fetch all users except the current authenticated user
         return response()->json($users);
     }
 
@@ -222,6 +225,5 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'User deleted successfully.']);
     }
-
 
 }

@@ -3,9 +3,9 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { user, fetchUser } from '~/assets/js/userLogged'; // Adjust the path as needed
 import { useRoute } from 'vue-router';
 
-const loadUser = async () => {
-  await fetchUser();
-};
+// const loadUser = async () => {
+//   await fetchUser();
+// };
 
 // onMounted(() => {
 //   loadUser(); // Load user data when the component mounts

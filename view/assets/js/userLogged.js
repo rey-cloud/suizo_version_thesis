@@ -25,13 +25,15 @@ export const user = reactive({
 // Fetch user data from the API and update the reactive state
 export async function fetchUser() {
   try {
+    console.log('token inside', localStorage.getItem('_token'))
+    console.log('this should be in the middle of after and before')
     const response = await fetch(`http://127.0.0.1:8000/api/user`, {
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('_token') // Use 'Bearer' prefix for token
       }
     });
-
+    console.log('response read')
     if (response.ok) {
       const data = await response.json();
       console.log('Fetched user data:', data);
@@ -47,6 +49,7 @@ export async function fetchUser() {
       user.username = data.username || user.username;
       user.created_at = data.created_at || user.created_at;
       user.updated_at = data.updated_at || user.updated_at;
+      user.password = data.password;
       return user;
     } else {
       console.error('No data found in response:', response);

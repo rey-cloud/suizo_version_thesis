@@ -6,7 +6,11 @@ const loadUser = async () => {
   await fetchUser();
 };
 onMounted(() => {
-  loadUser(); // Load user data when the component mounts
+  if (!localStorage.getItem('_token')) {
+    navigateTo(`/auth`);
+  } else {
+    loadUser(); // Load user data when the component mounts
+  }
 });
 
 const open = ref(false);

@@ -22,6 +22,15 @@
 
       <hr class="border-custom-300 dark:border-custom-500">
 
+      <!-- display other errors here -->
+      <div v-if="state.errors.length">
+        <ul>
+          <li v-for="(error, index) in state.errors" :key="index" class="text-red-500 dark:text-red-400 text-lg font-bold text-center">
+            {{ error }}
+          </li>
+        </ul>
+      </div>
+
       <!-- username -->
       <UFormGroup 
         class="grid gap-1" 
@@ -29,7 +38,7 @@
         :ui="{ error: 'mt-1' }">
 
         <template #label>
-          <div class="flex items-center justify-start gap-1">
+          <div class="flex items-center justify-start gap-1 mb-1">
             <UIcon 
               name="i-lucide-user-round" 
               class="text-lg" />
@@ -44,19 +53,18 @@
             type="text" 
             color="gray" 
             size="md"
-            :trailing-icon="error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined" 
             :ui="{
               rounded: 'rounded',
               color: error ?
-                { red: { outline: 'bg-red-100 dark:bg-red-50 text-custom-900 dark:text-custom-900 focus:ring-1 focus:ring-red-400 border-2 border-red-400 focus:border-red-400 active:ring-red-400 active:border-red-400' } } : 
-                { gray: { outline: 'dark:bg-custom-100 dark:text-custom-900' } }
+                { red: { outline: 'dark:bg-red-50 bg-red-100 dark:text-custom-900 focus:ring-2 ring-1 ring-red-400 focus:ring-red-400 focus:border-red-400 active:ring-red-400 active:border-red-400' } } : 
+                { gray: { outline: 'dark:bg-custom-100 dark:text-custom-900 border-none' } }
             }" />
         </template>
 
         <template #error="{ error }">
           <span
-            :class="[state.errors ? 'text-red-500 dark:text-red-400 text-xs font-bold' : 'text-primary-500 dark:text-primary-400']">
-            {{ state.errors && state.errors._data && state.errors._data.errors && state.errors._data.errors.username && state.errors._data.errors.username[0] }}
+            :class="[error ? 'text-red-500 dark:text-red-400 text-xs font-bold' : 'text-primary-500 dark:text-primary-400']">
+            {{ error ? error : undefined }}
           </span>
         </template>
       </UFormGroup>
@@ -68,7 +76,7 @@
         :ui="{ error: 'mt-1' }">
 
         <template #label>
-          <div class="flex items-center justify-start gap-1">
+          <div class="flex items-center justify-start gap-1 mb-1">
             <UIcon 
               name="i-lucide-key-round" 
               class="text-lg" />
@@ -77,35 +85,46 @@
         </template>
 
         <template #default="{ error }">
-          <UInput 
-          v-model="state.user.password" 
-          placeholder="Password"
-          type="password" 
-          color="gray" 
-          size="md"
-            :trailing-icon="error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined" 
-            :ui="{
-              rounded: 'rounded',
-              color: error ?
-                { red: { outline: 'bg-red-100 dark:bg-red-50 text-custom-900 dark:text-custom-900 focus:ring-1 focus:ring-red-400 border-2 border-red-400 focus:border-red-400 active:ring-red-400 active:border-red-400' } } : 
-                { gray: { outline: 'dark:bg-custom-100 dark:text-custom-900' } }
-            }" />
+
+          <div class="relative w-full">
+
+            <!-- Show/Hide Icon -->
+            <div 
+              class="flex gap-1 items-center absolute z-10 right-2 top-[10px] pr-1 cursor-pointer hover:opacity-60 dark:text-black" 
+              @click="togglePassword">
+
+                <UIcon v-if="showPassword" name="i-fluent-eye-off-24-filled" />
+                <UIcon v-else name="i-fluent-eye-12-filled" />
+            </div>
+
+            <UInput 
+              v-model="state.user.password" 
+              :type="showPassword ? 'text' : 'password'" 
+              color="gray" 
+              size="md"
+              placeholder="Password"
+              :ui="{
+                rounded: 'rounded',
+                color: error ?
+                  { red: { outline: 'dark:bg-red-50 bg-red-100 pr-10 dark:text-custom-900 focus:ring-2 ring-1 ring-red-400 focus:ring-red-400 focus:border-red-400 active:ring-red-400 active:border-red-400' } } : 
+                  { gray: { outline: 'dark:bg-custom-100 dark:text-custom-900 pr-10 border-none' } }
+              }" />
+          </div>
         </template>
 
         <template #error="{ error }">
           <span
-            :class="[state.errors ? 'text-red-500 dark:text-red-400 text-xs font-bold' : 'text-primary-500 dark:text-primary-400']">
-            {{ state.errors && state.errors._data && state.errors._data.errors && state.errors._data.errors.password && state.errors._data.errors.password[0] }}
+            :class="[error ? 'text-red-500 dark:text-red-400 text-xs font-bold' : 'text-primary-500 dark:text-primary-400']">
+            {{ error ? error : undefined }}
           </span>
         </template>
-
       </UFormGroup>
 
       <UButton 
         type="submit" 
-        :label="label" 
-        :loading-icon="loadIcon" 
-        :loading="loading"
+        :label="load.label.value" 
+        :loading-icon="load.icon.value" 
+        :loading="load.bool.value"
         class="flex justify-center items-center gap-1 py-2 rounded dark:text-custom-50 dark:bg-custom-500 hover:dark:bg-custom-500/75" />
 
       <Divider />
@@ -119,41 +138,86 @@
     </UForm>
   </div>
 </template>
-<script setup>
-import { reactive, ref } from 'vue';
+
+<script setup lang="ts">
+import type { FormError, FormErrorEvent, FormSubmitEvent } from '#ui/types';
+import { showPassword, togglePassword } from '~/assets/js/showPassword';
 
 const state = reactive({
-  errors: [],
+  errors: [] as string[],
   user: {
-    username: null,
-    password: null
+    username: '',
+    password: ''
   }
-});
+})
 
-const loading = ref(false);
-const loadIcon = ref('');
-const label = ref('Sign In');
+const load = {
+  bool: ref(false),
+  label: ref('Login'),
+  icon: ref('')
+}
 
-async function onSubmit() {
+const validate = (state: any): FormError[] => {
+  const errors = []
+  if (!state.user.username) errors.push({ path: 'username', message: 'Required' })
+  if (!state.user.password) errors.push({ path: 'password', message: 'Required' })
+  return errors
+}
+
+async function onError(event: FormErrorEvent) {
+  const element = document.getElementById(event.errors[0].id)
+  element?.focus()
+  element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+async function onSubmit(event: FormSubmitEvent<any>) {
+  // Clear previous errors
+  state.errors = []; 
+
+  load.bool.value = true;
+  load.icon.value = 'i-lucide-loader-circle';
+  load.label.value = '';
+
   const params = {
     username: state.user.username,
     password: state.user.password
   }
+
+  interface LoginResponse {
+    token: string;
+  }
+
   try {
-    const response = await $fetch(`http://127.0.0.1:8000/api/auth/login`, {
+    const response = await $fetch<LoginResponse>(`http://127.0.0.1:8000/api/auth/login`, {
       method: 'POST',
       body: params
     })
+
     if (response) {
-      console.log(response)
       localStorage.setItem('_token', response.data.token)
-      navigateTo('/auth/otp')
+
+      console.log(response)
+      console.log(params);
+
+      setTimeout(() => {
+        load.label.value = 'Login';
+        load.bool.value = false;
+        navigateTo('/auth/otp')
+      }, 500)
     }
-  } catch (error) {
-    state.errors = error.response
-    console.log(error.response);
-    console.log('error', error)
+  } catch (error: any) {    
+    load.label.value = 'Login';
+    load.bool.value = false;
+
+    if (error.response && error.response._data) {
+      const backendErrors = error.response._data.message; // Assuming it's a string
+      state.errors.push(backendErrors);
+    } else {      
+      state.errors.push('Server Error.');
+    }
+    console.log("An error occurred:", state.errors);
   }
 }
+
 
 </script>
